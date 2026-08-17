@@ -1,0 +1,261 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+ * @font-face خام (مش next/font/local) — عمدًا، next/font/local كان بيكسر
+ * تشكيل الحروف مع خطوط Naskh المخصصة دي تحديدًا. بناءً على طلب المستخدم:
+ * Thick Naskh Swash للعناوين، وKA Typical Naskh للنصوص الأساسية (Free for
+ * personal use only — arfonts.net؛ مناسب طالما المشروع portfolio/demo،
+ * محتاج ترخيص مختلف لو اتحول لمنتج تجاري حقيقي). JH Naskh Expanded Medium
+ * (المحاولة السابقة للنص الأساسي) مش مستخدَم دلوقتي، الملف لسه موجود لو
+ * رجعنا نحتاجه. word-spacing في @layer base تحت ده متسّاب على normal —
+ * الخط الحالي مش محتاج تعويض زي Decotype القديم.
+ */
+@font-face {
+  font-family: "Thick Naskh Swash";
+  src: url("/fonts/thick-naskh-swash.ttf") format("truetype");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "KA Typical Naskh";
+  src: url("/fonts/ka-typical-naskh.otf") format("opentype");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "KA Typical Naskh", sans-serif;
+  --font-heading: "Thick Naskh Swash", sans-serif;
+  --font-ltr: var(--font-ltr-technical);
+  --font-ltr-display: var(--font-ltr-display-face);
+  --color-status-active: var(--status-active);
+  --color-status-active-bg: var(--status-active-bg);
+  --color-status-maintenance: var(--status-maintenance);
+  --color-status-maintenance-bg: var(--status-maintenance-bg);
+  --color-status-rented: var(--status-rented);
+  --color-status-rented-bg: var(--status-rented-bg);
+  --color-status-retired: var(--status-retired);
+  --color-status-retired-bg: var(--status-retired-bg);
+  --color-badge-1: var(--badge-1);
+  --color-badge-1-bg: var(--badge-1-bg);
+  --color-badge-2: var(--badge-2);
+  --color-badge-2-bg: var(--badge-2-bg);
+  --color-badge-3: var(--badge-3);
+  --color-badge-3-bg: var(--badge-3-bg);
+  --color-badge-4: var(--badge-4);
+  --color-badge-4-bg: var(--badge-4-bg);
+  --color-badge-5: var(--badge-5);
+  --color-badge-5-bg: var(--badge-5-bg);
+  --color-badge-6: var(--badge-6);
+  --color-badge-6-bg: var(--badge-6-bg);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * لوحة الألوان — "Industrial Fleet Livery" (اتجاه impeccable المُعيَّن رقم ٧
+ * من ٧ مرشحين مبنيين على عالم صيانة/تأجير المعدات — concept-seed key
+ * 867b4ec1)، بنسخة light mode بناءً على طلب المستخدم: أرضية "استيل مطلي
+ * فاتح" (primer/galvanized) دافئة بدل الأبيض الـSaaS المعتاد أو الجرافيت
+ * الغامق اللي كان هنا الأول، ولون واحد ملتزم بيه (أصفر السلامة الصناعي)
+ * بيتصرف بس على حالات الأولوية/النشاط بدل ما يتوزع على كل حاجة. تباين
+ * الألوان اتحقق منه يدويًا (نسب WCAG محسوبة) واتراجع بمساعدة ui-ux-pro-max.
+ */
+:root {
+  --background: #f2efea;
+  --foreground: #211e1a;
+  --card: #ffffff;
+  --card-foreground: #211e1a;
+  --popover: #ffffff;
+  --popover-foreground: #211e1a;
+  --primary: #f5b400;
+  --primary-foreground: #211e1a;
+  --secondary: #e4dfd6;
+  --secondary-foreground: #211e1a;
+  --muted: #eae6df;
+  --muted-foreground: #5a5348;
+  --accent: #ede9e2;
+  --accent-foreground: #211e1a;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #dcd6cb;
+  --input: #dcd6cb;
+  --ring: #f5b400;
+  --heading-foreground: #171512;
+  --chart-1: #b45309;
+  --chart-2: #1d4ed8;
+  --chart-3: #15803d;
+  --chart-4: #f5b400;
+  --chart-5: #5a5348;
+  --radius: 0.375rem;
+
+  /* السايدبار: درجة أغمق شوية من الخلفية الأساسية (استيل مرفوع/panel) —
+     مش صندوق أزرق ومش غامق بالكامل — مع لمبة مؤشر صفراء على العنصر النشط
+     بدل الـpill الأبيض الطافي. */
+  --sidebar: #e9e3d8;
+  --sidebar-foreground: #3a352c;
+  --sidebar-primary: #f5b400;
+  --sidebar-primary-foreground: #211e1a;
+  --sidebar-accent: #ded6c5;
+  --sidebar-accent-foreground: #171512;
+  --sidebar-border: #d2c9b6;
+  --sidebar-ring: #f5b400;
+
+  /* ألوان حالة المعدات — نفس الدلالات القديمة (أخضر=شغال، كهرماني=صيانة،
+     أزرق=مؤجر، رمادي=متوقف)، ومُبقاة مختلفة عن --primary الأصفر عشان لون
+     التنبيه في الواجهة يفضل معناه واحد بس. */
+  --status-active: #15803d;
+  --status-active-bg: #dcfce7;
+  --status-maintenance: #b45309;
+  --status-maintenance-bg: #fef3c7;
+  --status-rented: #1d4ed8;
+  --status-rented-bg: #dbeafe;
+  --status-retired: #57534e;
+  --status-retired-bg: #ede9e2;
+
+  /* شارات أيقونات ملونة على البطاقات — لون مشبّع للأيقونة + خلفية فاتحة من
+     نفس العائلة. */
+  --badge-1: #1d4ed8;
+  --badge-1-bg: #dbeafe;
+  --badge-2: #b45309;
+  --badge-2-bg: #fef3c7;
+  --badge-3: #15803d;
+  --badge-3-bg: #dcfce7;
+  --badge-4: #6d28d9;
+  --badge-4-bg: #ede4fe;
+  --badge-5: #be185d;
+  --badge-5-bg: #fce7f3;
+  --badge-6: #0e7490;
+  --badge-6-bg: #cffafe;
+
+  /* أصفر السلامة الصناعي + أسود الشريط (foreground) كـ"شريط تحذير" هيكلي —
+     زي شريط تحذير حقيقي (أصفر/أسود)، بيتحط بس على البطاقات اللي محتاجة
+     انتباه فعلي (متأخر/تحت الحد الأدنى)، مش زخرفة عامة. */
+  --stripe-attention: repeating-linear-gradient(
+    135deg,
+    var(--primary) 0 10px,
+    var(--foreground) 10px 20px
+  );
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    /* تكبير عام لحجم الخط في كل الموقع (بدل 16px الافتراضي) — كل أحجام
+       Tailwind بتتحسب بالـ rem فبتتكبر معاها تناسبيًا من غير ما نلمس كل
+       كومبوننت لوحده. زودناها شوية كمان بناءً على طلب المستخدم (مش أكتر
+       من كده عشان الجداول الكثيفة متتكسرش). */
+    font-size: 22px;
+  }
+  body {
+    /* الخط الحالي (JH Naskh Expanded Medium) موسّع طبيعيًا بعكس Decotype
+       Naskh Special القديم — مفيش حاجة تتعوّض، فمسحنا الـword-spacing
+       الإضافي اللي كان بيبان زيادة عليه في النصوص الكثيفة. */
+    word-spacing: normal;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+    color: var(--heading-foreground);
+  }
+}
+
+@layer utilities {
+  /* الاستثناء الوحيد لـ LTR: أكواد/أرقام/تواريخ/أرقام تسلسلية بحتة */
+  .ltr-technical {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-family: var(--font-ltr);
+    word-spacing: normal;
+    display: inline-block;
+  }
+
+  /* كود أصنف/معدّة بارز (asset tag) — نفس عزل .ltr-technical لكن بخط
+     Big Shoulders الصناعي المضغوط، زي أرقام لوحة تصنيف مطبوعة على المعدة.
+     الأرقام المعروضة العادية (KPIs) بتفضل بالأرقام العربية بخط Naskh —
+     Big Shoulders معندوش أرقام عربية-هندية فمينفعش يتحط عليها. */
+  .ltr-technical-display {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-family: var(--font-ltr-display), var(--font-ltr);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    word-spacing: normal;
+    display: inline-block;
+  }
+
+  /* شريط تحذير هيكلي (حالات الأولوية فقط) — راجع تعريف --stripe-attention */
+  .stripe-attention {
+    background-image: var(--stripe-attention);
+  }
+
+  /* حركة دخول خفيفة لمحتوى الصفحة الرئيسي — micro-interaction بسيطة */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-page-in {
+    animation: fade-in-up 0.35s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-page-in {
+      animation: none;
+    }
+  }
+}

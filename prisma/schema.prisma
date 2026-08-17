@@ -1,0 +1,525 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// الهوية والصلاحيات (RBAC عام قابل للتوسع)
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  fullNameAr   String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  employee Employee?
+
+  roles              UserRole[]
+  sessions           Session[]
+  maintenanceJobs    MaintenanceJob[]    @relation("EngineerJobs")
+  stockMovements     StockMovement[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+  assignedTickets    SupportTicket[]     @relation("AssignedTickets")
+  ticketComments     TicketComment[]
+  payrollAdjustments PayrollAdjustment[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Role {
+  id          String  @id @default(cuid())
+  key         String  @unique // "owner" | "engineer" | "accountant" | "warehouse_keeper" | "rental_manager" | "support_agent" | قابل للتوسع
+  nameAr      String
+  description String?
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id     String @id @default(cuid())
+  key    String @unique // "module:action" — مثال: "maintenance:create"
+  nameAr String
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// ─────────────────────────────────────────────────────────────
+// سجل تدقيق عام (audit trail) — يُستخدم من كل الموديولات
+// ─────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  entityType  String
+  entityId    String
+  action      String // create | update | delete
+  actorUserId String
+  actor       User     @relation(fields: [actorUserId], references: [id])
+  changes     Json?
+  occurredAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorUserId])
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────
+// المخزون والمعدات
+// ─────────────────────────────────────────────────────────────
+
+model Equipment {
+  id           String   @id @default(cuid())
+  assetTag     String   @unique
+  type         String // generator | tractor | other...
+  brand        String?
+  model        String?
+  serialNumber String?
+  status       String   @default("active") // active | in_maintenance | rented | retired
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  components      EquipmentComponent[]
+  maintenanceJobs MaintenanceJob[]
+  stockMovements  StockMovement[]
+  rentalContracts RentalContract[]
+  supportTickets  SupportTicket[]
+
+  @@map("equipment")
+}
+
+model EquipmentComponent {
+  id            String    @id @default(cuid())
+  equipmentId   String
+  equipment     Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  componentType String // filter | oil | injector | other_part
+  name          String
+  installedAt   DateTime?
+  lastServiceAt DateTime?
+  nextDueAt     DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  serviceEvents ComponentServiceEvent[]
+
+  @@index([equipmentId])
+  @@index([nextDueAt])
+  @@map("equipment_components")
+}
+
+model InventoryItem {
+  id              String   @id @default(cuid())
+  sku             String   @unique
+  nameAr          String
+  unit            String
+  currentQuantity Decimal  @default(0)
+  reorderLevel    Decimal  @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  movements        StockMovement[]
+  maintenanceItems MaintenanceJobItem[]
+
+  @@map("inventory_items")
+}
+
+model StockMovement {
+  id                     String        @id @default(cuid())
+  inventoryItemId        String
+  inventoryItem          InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  quantityChange         Decimal // موجب أو سالب
+  movementType           String // purchase_in | maintenance_out | rental_out | adjustment | return_in
+  referenceType          String? // "MaintenanceJob" | "RentalContract" | "manual"
+  referenceId            String?
+  destinationEquipmentId String?
+  destinationEquipment   Equipment?    @relation(fields: [destinationEquipmentId], references: [id])
+  performedByUserId      String
+  performedBy            User          @relation(fields: [performedByUserId], references: [id])
+  occurredAt             DateTime      @default(now())
+
+  @@index([inventoryItemId])
+  @@index([destinationEquipmentId])
+  @@index([referenceType, referenceId])
+  @@map("stock_movements")
+}
+
+// ─────────────────────────────────────────────────────────────
+// الصيانة — قلب النظام (الربط الذري)
+// ─────────────────────────────────────────────────────────────
+
+model MaintenanceJob {
+  id             String    @id @default(cuid())
+  equipmentId    String
+  equipment      Equipment @relation(fields: [equipmentId], references: [id])
+  engineerUserId String
+  engineer       User      @relation("EngineerJobs", fields: [engineerUserId], references: [id])
+  jobType        String // routine | repair | emergency
+  status         String    @default("completed") // in_progress | completed
+  description    String?
+  startedAt      DateTime
+  completedAt    DateTime?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+
+  items         MaintenanceJobItem[]
+  serviceEvents ComponentServiceEvent[]
+  invoices      Invoice[]
+
+  @@index([equipmentId])
+  @@index([engineerUserId])
+  @@map("maintenance_jobs")
+}
+
+model MaintenanceJobItem {
+  id               String         @id @default(cuid())
+  maintenanceJobId String
+  maintenanceJob   MaintenanceJob @relation(fields: [maintenanceJobId], references: [id], onDelete: Cascade)
+  inventoryItemId  String
+  inventoryItem    InventoryItem  @relation(fields: [inventoryItemId], references: [id])
+  quantity         Decimal
+
+  @@index([maintenanceJobId])
+  @@map("maintenance_job_items")
+}
+
+model ComponentServiceEvent {
+  id                   String             @id @default(cuid())
+  maintenanceJobId     String
+  maintenanceJob       MaintenanceJob     @relation(fields: [maintenanceJobId], references: [id], onDelete: Cascade)
+  equipmentComponentId String
+  equipmentComponent   EquipmentComponent @relation(fields: [equipmentComponentId], references: [id])
+  eventType            String // changed | inspected | replaced
+  performedAt          DateTime
+
+  @@index([maintenanceJobId])
+  @@index([equipmentComponentId])
+  @@map("component_service_events")
+}
+
+// ─────────────────────────────────────────────────────────────
+// الموارد البشرية
+// ─────────────────────────────────────────────────────────────
+
+model Employee {
+  id         String   @id @default(cuid())
+  userId     String?  @unique
+  user       User?    @relation(fields: [userId], references: [id])
+  fullNameAr String
+  position   String
+  hireDate   DateTime
+  baseSalary Decimal
+  isActive   Boolean  @default(true)
+
+  attendance AttendanceRecord[]
+  payroll    PayrollRecord[]
+
+  @@map("employees")
+}
+
+model AttendanceRecord {
+  id         String    @id @default(cuid())
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  date       DateTime  @db.Date
+  checkIn    DateTime?
+  checkOut   DateTime?
+  status     String // present | absent | leave | late
+
+  @@unique([employeeId, date])
+  @@map("attendance_records")
+}
+
+model PayrollRecord {
+  id              String   @id @default(cuid())
+  employeeId      String
+  employee        Employee @relation(fields: [employeeId], references: [id])
+  periodMonth     Int
+  periodYear      Int
+  baseSalary      Decimal
+  deductionsTotal Decimal  @default(0)
+  additionsTotal  Decimal  @default(0)
+  netPay          Decimal
+  status          String   @default("draft") // draft | finalized | paid
+
+  adjustments PayrollAdjustment[]
+
+  @@unique([employeeId, periodMonth, periodYear])
+  @@map("payroll_records")
+}
+
+model PayrollAdjustment {
+  id              String        @id @default(cuid())
+  payrollRecordId String
+  payrollRecord   PayrollRecord @relation(fields: [payrollRecordId], references: [id], onDelete: Cascade)
+  type            String // deduction | addition
+  reason          String
+  amount          Decimal
+  createdByUserId String
+  createdBy       User          @relation(fields: [createdByUserId], references: [id])
+  createdAt       DateTime      @default(now())
+
+  @@map("payroll_adjustments")
+}
+
+// ─────────────────────────────────────────────────────────────
+// المحاسبة والفوترة
+// ─────────────────────────────────────────────────────────────
+
+model Customer {
+  id        String   @id @default(cuid())
+  nameAr    String
+  phone     String?
+  taxId     String?
+  type      String // individual | company
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  invoices        Invoice[]
+  quotes          Quote[]
+  rentalContracts RentalContract[]
+  supportTickets  SupportTicket[]
+
+  @@map("customers")
+}
+
+model Invoice {
+  id               String          @id @default(cuid())
+  invoiceNumber    String          @unique
+  customerId       String
+  customer         Customer        @relation(fields: [customerId], references: [id])
+  issueDate        DateTime        @default(now())
+  status           String          @default("draft") // draft | issued | paid | cancelled
+  referenceType    String? // "RentalContract" | "MaintenanceJob" | "manual"
+  referenceId      String?
+  rentalContractId String?
+  rentalContract   RentalContract? @relation(fields: [rentalContractId], references: [id])
+  maintenanceJobId String?
+  maintenanceJob   MaintenanceJob? @relation(fields: [maintenanceJobId], references: [id])
+  total            Decimal         @default(0)
+  // نقطة توسع مستقبلية للفوترة الإلكترونية المصرية (ETA) — غير مستخدمة الآن
+  etaUuid          String?
+  etaStatus        String?
+
+  lineItems   InvoiceLineItem[]
+  payments    Payment[]
+  sourceQuote Quote?
+
+  @@index([customerId])
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Decimal
+  unitPrice   Decimal
+  taxRate     Decimal @default(0)
+  lineTotal   Decimal
+
+  @@map("invoice_line_items")
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  amount    Decimal
+  paidAt    DateTime @default(now())
+  method    String // cash | bank_transfer | check
+
+  @@map("payments")
+}
+
+// ─────────────────────────────────────────────────────────────
+// عروض الأسعار — تحول لفاتورة بعد الموافقة
+// ─────────────────────────────────────────────────────────────
+
+model Quote {
+  id                 String          @id @default(cuid())
+  quoteNumber        String          @unique
+  customerId         String
+  customer           Customer        @relation(fields: [customerId], references: [id])
+  issueDate          DateTime        @default(now())
+  expiryDate         DateTime?
+  status             String          @default("draft") // draft | sent | accepted | rejected | expired | converted
+  referenceType      String? // "RentalContract" | "manual"
+  referenceId        String?
+  rentalContractId   String?
+  rentalContract     RentalContract? @relation(fields: [rentalContractId], references: [id])
+  total              Decimal         @default(0)
+  convertedInvoiceId String?         @unique
+  convertedInvoice   Invoice?        @relation(fields: [convertedInvoiceId], references: [id])
+
+  lineItems QuoteLineItem[]
+
+  @@index([customerId])
+  @@map("quotes")
+}
+
+model QuoteLineItem {
+  id          String  @id @default(cuid())
+  quoteId     String
+  quote       Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Decimal
+  unitPrice   Decimal
+  taxRate     Decimal @default(0)
+  lineTotal   Decimal
+
+  @@map("quote_line_items")
+}
+
+// ─────────────────────────────────────────────────────────────
+// إعدادات الشركة — سجل واحد فقط، يُستخدم في ترويسة المستندات المطبوعة
+// ─────────────────────────────────────────────────────────────
+
+model Settings {
+  id             String   @id @default("default")
+  companyNameAr  String   @default("نظام إدارة الشركة")
+  taxId          String?
+  address        String?
+  phone          String?
+  logoUrl        String?
+  defaultTaxRate Decimal  @default(0)
+  updatedAt      DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ─────────────────────────────────────────────────────────────
+// الدعم الفني
+// ─────────────────────────────────────────────────────────────
+
+model SupportTicket {
+  id               String     @id @default(cuid())
+  ticketNumber     String     @unique
+  customerId       String?
+  customer         Customer?  @relation(fields: [customerId], references: [id])
+  equipmentId      String?
+  equipment        Equipment? @relation(fields: [equipmentId], references: [id])
+  assignedToUserId String?
+  assignedTo       User?      @relation("AssignedTickets", fields: [assignedToUserId], references: [id])
+  subject          String
+  priority         String     @default("normal") // low | normal | high | urgent
+  status           String     @default("open") // open | in_progress | resolved | closed
+  createdAt        DateTime   @default(now())
+
+  comments TicketComment[]
+
+  @@map("support_tickets")
+}
+
+model TicketComment {
+  id           String        @id @default(cuid())
+  ticketId     String
+  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorUserId String
+  author       User          @relation(fields: [authorUserId], references: [id])
+  body         String
+  createdAt    DateTime      @default(now())
+
+  @@map("ticket_comments")
+}
+
+// ─────────────────────────────────────────────────────────────
+// الإيجارات
+// ─────────────────────────────────────────────────────────────
+
+model RentalContract {
+  id                 String    @id @default(cuid())
+  contractNumber     String    @unique
+  customerId         String
+  customer           Customer  @relation(fields: [customerId], references: [id])
+  equipmentId        String
+  equipment          Equipment @relation(fields: [equipmentId], references: [id])
+  startDate          DateTime
+  expectedReturnDate DateTime
+  actualReturnDate   DateTime?
+  status             String    @default("active") // active | completed | overdue | cancelled
+  rateAmount         Decimal
+
+  invoices Invoice[]
+  quotes   Quote[]
+
+  @@index([customerId])
+  @@index([equipmentId])
+  @@map("rental_contracts")
+}
+
+// ─────────────────────────────────────────────────────────────
+// التنبيهات الذكية
+// ─────────────────────────────────────────────────────────────
+
+model AlertRule {
+  id            String  @id @default(cuid())
+  entityType    String // "EquipmentComponent" | "InventoryItem" | "RentalContract"
+  conditionType String // "date_due" | "quantity_below_min" | "overdue"
+  thresholdDays Int?
+  notifyRoleKey String
+  isActive      Boolean @default(true)
+
+  notifications Notification[]
+
+  @@map("alert_rules")
+}
+
+model Notification {
+  id              String     @id @default(cuid())
+  alertRuleId     String?
+  alertRule       AlertRule? @relation(fields: [alertRuleId], references: [id])
+  recipientUserId String
+  recipient       User       @relation(fields: [recipientUserId], references: [id])
+  title           String
+  entityType      String
+  entityId        String
+  isRead          Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+
+  @@index([recipientUserId, isRead])
+  @@map("notifications")
+}

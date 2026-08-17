@@ -1,0 +1,19 @@
+{
+  "name": "نظام إدارة الشركة",
+  "short_name": "إدارة الشركة",
+  "description": "نظام ERP لإدارة المخزون والصيانة والموارد البشرية والمحاسبة والإيجارات",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e40af",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

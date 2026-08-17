@@ -1,0 +1,57 @@
+[
+  {
+    "id": "intro",
+    "file": "intro.mp3",
+    "durationSeconds": 19.2
+  },
+  {
+    "id": "equipment",
+    "file": "equipment.mp3",
+    "durationSeconds": 17.52
+  },
+  {
+    "id": "maintenance",
+    "file": "maintenance.mp3",
+    "durationSeconds": 17.904
+  },
+  {
+    "id": "alerts",
+    "file": "alerts.mp3",
+    "durationSeconds": 12.768
+  },
+  {
+    "id": "hr",
+    "file": "hr.mp3",
+    "durationSeconds": 11.544
+  },
+  {
+    "id": "rentals",
+    "file": "rentals.mp3",
+    "durationSeconds": 11.184
+  },
+  {
+    "id": "accounting",
+    "file": "accounting.mp3",
+    "durationSeconds": 12.744
+  },
+  {
+    "id": "support",
+    "file": "support.mp3",
+    "durationSeconds": 9.408
+  },
+  {
+    "id": "dashboard",
+    "file": "dashboard.mp3",
+    "durationSeconds": 12.912
+  },
+  {
+    "id": "search-permissions",
+    "file": "search-permissions.mp3",
+    "durationSeconds": 14.664
+  },
+  {
+    "id": "outro",
+    "file": "outro.mp3",
+    "durationSeconds": 14.928
+  }
+]

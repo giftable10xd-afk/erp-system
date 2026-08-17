@@ -3,6 +3,8 @@ import { requirePermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { CustomerEditForm } from "./customer-edit-form";
+import { PortalLinkBox } from "@/components/portal-link-box";
+import { Label } from "@/components/ui/label";
 
 export default async function EditCustomerPage({
   params,
@@ -27,6 +29,13 @@ export default async function EditCustomerPage({
           type: customer.type,
         }}
       />
+      <div className="flex max-w-xl flex-col gap-2">
+        <Label>رابط بوابة العميل</Label>
+        <PortalLinkBox path={`/portal/${customer.portalToken}`} />
+        <p className="text-xs text-muted-foreground">
+          ابعت الرابط ده للعميل — يقدر يشوف فواتيره وعروض أسعاره من غيره تسجيل دخول.
+        </p>
+      </div>
     </div>
   );
 }

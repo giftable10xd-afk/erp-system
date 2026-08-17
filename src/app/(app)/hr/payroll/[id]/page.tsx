@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDateTime, formatNumber } from "@/lib/format";
+import { formatDateTime, formatCurrency } from "@/lib/format";
 import { PAYROLL_STATUS_LABELS, monthNameAr } from "@/lib/labels";
 import { finalizePayrollAction, voidPayrollRecordAction } from "@/lib/actions/hr-actions";
 import { AdjustmentForm } from "./adjustment-form";
@@ -35,7 +35,7 @@ export default async function PayrollRecordPage({
     id: a.id,
     type: a.type,
     reason: a.reason,
-    amount: formatNumber(a.amount.toString()),
+    amount: formatCurrency(a.amount.toString()),
     createdByName: a.createdBy.fullNameAr,
     createdAtLabel: formatDateTime(a.createdAt),
   }));
@@ -57,14 +57,14 @@ export default async function PayrollRecordPage({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">المرتب الأساسي</CardTitle>
           </CardHeader>
-          <CardContent>{formatNumber(record.baseSalary.toString())}</CardContent>
+          <CardContent>{formatCurrency(record.baseSalary.toString())}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">إجمالي الخصومات</CardTitle>
           </CardHeader>
           <CardContent className="text-destructive">
-            −{formatNumber(record.deductionsTotal.toString())}
+            −{formatCurrency(record.deductionsTotal.toString())}
           </CardContent>
         </Card>
         <Card>
@@ -72,14 +72,14 @@ export default async function PayrollRecordPage({
             <CardTitle className="text-sm text-muted-foreground">إجمالي الإضافات</CardTitle>
           </CardHeader>
           <CardContent className="text-status-active">
-            +{formatNumber(record.additionsTotal.toString())}
+            +{formatCurrency(record.additionsTotal.toString())}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">الصافي</CardTitle>
           </CardHeader>
-          <CardContent className="font-bold">{formatNumber(record.netPay.toString())}</CardContent>
+          <CardContent className="font-bold">{formatCurrency(record.netPay.toString())}</CardContent>
         </Card>
       </div>
 

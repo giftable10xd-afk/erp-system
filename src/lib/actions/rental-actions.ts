@@ -190,6 +190,8 @@ const contractUpdateSchema = z.object({
   contractId: z.string().min(1),
   expectedReturnDate: z.string().min(1),
   rateAmount: z.coerce.number().positive("قيمة الإيجار لازم تكون أكبر من صفر"),
+  isRecurring: z.coerce.boolean(),
+  recurringDayOfMonth: z.coerce.number().min(1).max(28),
 });
 
 export async function updateRentalContractAction(
@@ -202,6 +204,8 @@ export async function updateRentalContractAction(
     contractId: formData.get("contractId"),
     expectedReturnDate: formData.get("expectedReturnDate"),
     rateAmount: formData.get("rateAmount"),
+    isRecurring: formData.get("isRecurring") === "on",
+    recurringDayOfMonth: formData.get("recurringDayOfMonth") || "1",
   });
 
   if (!parsed.success) {
@@ -213,7 +217,12 @@ export async function updateRentalContractAction(
   await prisma.$transaction(async (tx) => {
     const contract = await tx.rentalContract.update({
       where: { id: contractId },
-      data: { expectedReturnDate: new Date(data.expectedReturnDate), rateAmount: data.rateAmount },
+      data: {
+        expectedReturnDate: new Date(data.expectedReturnDate),
+        rateAmount: data.rateAmount,
+        isRecurring: data.isRecurring,
+        recurringDayOfMonth: data.recurringDayOfMonth,
+      },
     });
     await recordAudit(tx, {
       entityType: "RentalContract",

@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Receipt } from "lucide-react";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatDate, formatCurrency } from "@/lib/format";
 import { INVOICE_STATUS_CLASSES, INVOICE_STATUS_LABELS, monthNameAr } from "@/lib/labels";
 import { PageHeader } from "@/components/page-header";
 import { MonthArchiveStrip } from "@/components/month-archive-strip";
@@ -73,8 +73,8 @@ export default async function AccountingPage({
 
       <div className="flex flex-wrap gap-3">
         <StatPill label={`عدد فواتير ${monthNameAr(periodMonth)}`} value={invoices.length} />
-        <StatPill label="إجمالي الصادر" value={formatNumber(totalIssued.toFixed(0))} />
-        <StatPill label="إجمالي المحصّل" value={formatNumber(totalCollected.toFixed(0))} />
+        <StatPill label="إجمالي الصادر" value={formatCurrency(totalIssued.toFixed(0))} />
+        <StatPill label="إجمالي المحصّل" value={formatCurrency(totalCollected.toFixed(0))} />
       </div>
 
       <div className="overflow-x-auto rounded-lg border bg-card shadow-sm">
@@ -108,8 +108,8 @@ export default async function AccountingPage({
                   </TableCell>
                   <TableCell>{inv.customer.nameAr}</TableCell>
                   <TableCell>{formatDate(inv.issueDate)}</TableCell>
-                  <TableCell>{formatNumber(inv.total.toString())}</TableCell>
-                  <TableCell>{formatNumber(paid.toString())}</TableCell>
+                  <TableCell>{formatCurrency(inv.total.toString())}</TableCell>
+                  <TableCell>{formatCurrency(paid.toString())}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={INVOICE_STATUS_CLASSES[inv.status]}>
                       {INVOICE_STATUS_LABELS[inv.status] ?? inv.status}

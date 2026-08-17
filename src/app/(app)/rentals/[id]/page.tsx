@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatDate, formatCurrency } from "@/lib/format";
 import { RENTAL_STATUS_CLASSES, RENTAL_STATUS_LABELS } from "@/lib/labels";
 import { returnEquipmentAction, cancelRentalContractAction } from "@/lib/actions/rental-actions";
 
@@ -77,7 +77,7 @@ export default async function RentalContractPage({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">قيمة الإيجار</CardTitle>
           </CardHeader>
-          <CardContent>{formatNumber(contract.rateAmount.toString())}</CardContent>
+          <CardContent>{formatCurrency(contract.rateAmount.toString())}</CardContent>
         </Card>
       </div>
 

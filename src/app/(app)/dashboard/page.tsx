@@ -4,7 +4,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatDate, formatDateTime, formatNumber } from "@/lib/format";
+import { formatDate, formatDateTime, formatNumber, formatCurrency } from "@/lib/format";
 import {
   MOVEMENT_TYPE_LABELS,
   RENTAL_STATUS_CLASSES,
@@ -40,6 +40,7 @@ export default async function DashboardPage() {
     pendingQuotesCount,
     acceptedQuotesCount,
     topCustomerTotals,
+    expensesThisMonthAgg,
   ] = await Promise.all([
     prisma.maintenanceJob.findMany({
       where: { startedAt: { gte: sevenDaysAgo } },
@@ -83,6 +84,10 @@ export default async function DashboardPage() {
       orderBy: { _sum: { total: "desc" } },
       take: 5,
     }),
+    prisma.expense.aggregate({
+      _sum: { amount: true },
+      where: { expenseDate: { gte: firstOfMonth } },
+    }),
   ]);
 
   const unpaidTotal = unpaidInvoices.reduce((sum, inv) => {
@@ -97,6 +102,8 @@ export default async function DashboardPage() {
   const batteryItem = lowStockItems.find((i) => i.sku === "BATTERY-12V");
 
   const paidThisMonth = Number(paidThisMonthAgg._sum.amount ?? 0);
+  const expensesThisMonth = Number(expensesThisMonthAgg._sum.amount ?? 0);
+  const netThisMonth = paidThisMonth - expensesThisMonth;
 
   const topCustomers = await Promise.all(
     topCustomerTotals.map(async (row) => {
@@ -159,7 +166,7 @@ export default async function DashboardPage() {
         <StatCard
           index={2}
           icon="Receipt"
-          label="مستحقات غير محصلة"
+          label="مستحقات غير محصلة (ريال)"
           value={formatNumber(unpaidTotal.toFixed(0))}
           numericValue={Math.round(unpaidTotal)}
           href="/accounting"
@@ -214,7 +221,7 @@ export default async function DashboardPage() {
         <StatCard
           index={8}
           icon="Wallet"
-          label="محصّل الشهر الحالي"
+          label="محصّل الشهر الحالي (ريال)"
           value={formatNumber(paidThisMonth.toFixed(0))}
           numericValue={Math.round(paidThisMonth)}
           href="/accounting"
@@ -227,6 +234,25 @@ export default async function DashboardPage() {
           value={`${formatNumber(pendingQuotesCount)} / ${formatNumber(acceptedQuotesCount)} متقبَّل`}
           href="/accounting/quotes"
           color="cyan"
+        />
+        <StatCard
+          index={10}
+          icon="Wallet"
+          label="مصروفات الشهر (ريال)"
+          value={formatNumber(expensesThisMonth.toFixed(0))}
+          numericValue={Math.round(expensesThisMonth)}
+          href="/expenses"
+          color="amber"
+        />
+        <StatCard
+          index={11}
+          icon="Receipt"
+          label="صافي الشهر (ريال)"
+          value={formatNumber(netThisMonth.toFixed(0))}
+          numericValue={Math.round(netThisMonth)}
+          href="/accounting"
+          color={netThisMonth >= 0 ? "green" : "blue"}
+          attention={netThisMonth < 0}
         />
       </div>
 
@@ -330,7 +356,7 @@ export default async function DashboardPage() {
                 className="flex justify-between border-b border-border pb-2 text-sm last:border-0"
               >
                 <span>{customer.nameAr}</span>
-                <span className="ltr-technical font-medium">{formatNumber(total.toFixed(0))}</span>
+                <span className="ltr-technical font-medium">{formatCurrency(total.toFixed(0))}</span>
               </div>
             ))}
           </CardContent>

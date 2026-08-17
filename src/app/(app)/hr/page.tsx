@@ -4,7 +4,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatDate, formatCurrency } from "@/lib/format";
 import { PageHeader } from "@/components/page-header";
 import { EmployeesTable } from "./employees-table";
 
@@ -21,7 +21,7 @@ export default async function HrPage() {
     fullNameAr: emp.fullNameAr,
     position: emp.position,
     hireDateLabel: formatDate(emp.hireDate),
-    baseSalaryLabel: formatNumber(emp.baseSalary.toString()),
+    baseSalaryLabel: formatCurrency(emp.baseSalary.toString()),
     isActive: emp.isActive,
   }));
 

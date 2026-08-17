@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, FileSpreadsheet } from "lucide-react";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatDate, formatCurrency } from "@/lib/format";
 import { QUOTE_STATUS_CLASSES, QUOTE_STATUS_LABELS, monthNameAr } from "@/lib/labels";
 import { PageHeader } from "@/components/page-header";
 import { MonthArchiveStrip } from "@/components/month-archive-strip";
@@ -105,7 +105,7 @@ export default async function QuotesPage({
                 </TableCell>
                 <TableCell>{q.customer.nameAr}</TableCell>
                 <TableCell>{formatDate(q.issueDate)}</TableCell>
-                <TableCell>{formatNumber(q.total.toString())}</TableCell>
+                <TableCell>{formatCurrency(q.total.toString())}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={QUOTE_STATUS_CLASSES[q.status]}>
                     {QUOTE_STATUS_LABELS[q.status] ?? q.status}

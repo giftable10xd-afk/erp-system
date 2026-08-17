@@ -15,6 +15,13 @@ export function formatNumber(value: number | string | null | undefined) {
   return numberFormatter.format(Number(value));
 }
 
+// المبالغ المالية بس (مش الكميات/التعدادات) — الشركة سعودية، فكل المبالغ
+// بالريال السعودي. الرقم بأرقام لاتينية زي باقي النظام + "ريال" بعده.
+export function formatCurrency(value: number | string | null | undefined) {
+  if (value === null || value === undefined) return "—";
+  return `${numberFormatter.format(Number(value))} ريال`;
+}
+
 export function formatDate(value: Date | string | null | undefined) {
   if (!value) return "—";
   return dateFormatter.format(new Date(value));

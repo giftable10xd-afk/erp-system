@@ -15,7 +15,7 @@ import {
   Bell,
   ShieldCheck,
   Settings,
-  Clapperboard,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import type { NavItem, NavIconName } from "@/lib/nav-items";
@@ -32,7 +32,7 @@ const ICONS: Record<NavIconName, LucideIcon> = {
   Bell,
   ShieldCheck,
   Settings,
-  Clapperboard,
+  Wallet,
 };
 
 export function SidebarNav({ items }: { items: NavItem[] }) {

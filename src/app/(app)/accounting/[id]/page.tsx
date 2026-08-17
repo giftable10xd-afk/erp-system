@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatDate, formatNumber, formatCurrency } from "@/lib/format";
 import { INVOICE_STATUS_CLASSES, INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/labels";
 import { issueInvoiceAction, cancelInvoiceAction } from "@/lib/actions/invoice-actions";
 import { FileText } from "lucide-react";
@@ -24,13 +24,19 @@ export default async function InvoicePage({
 
   const invoice = await prisma.invoice.findUnique({
     where: { id },
-    include: { customer: true, lineItems: true, payments: { orderBy: { paidAt: "desc" } } },
+    include: {
+      customer: true,
+      lineItems: true,
+      payments: { orderBy: { paidAt: "desc" } },
+      creditNotes: { orderBy: { issueDate: "desc" } },
+    },
   });
 
   if (!invoice) notFound();
 
   const paid = invoice.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-  const remaining = Number(invoice.total) - paid;
+  const credited = invoice.creditNotes.reduce((sum, cn) => sum + Number(cn.total), 0);
+  const remaining = Number(invoice.total) - paid - credited;
 
   return (
     <div className="flex flex-col gap-6">
@@ -69,14 +75,14 @@ export default async function InvoicePage({
             <div key={item.id} className="flex justify-between border-b pb-2 last:border-0">
               <span>{item.description}</span>
               <span className="ltr-technical">
-                {formatNumber(item.quantity.toString())} × {formatNumber(item.unitPrice.toString())} ={" "}
-                {formatNumber(item.lineTotal.toString())}
+                {formatNumber(item.quantity.toString())} × {formatCurrency(item.unitPrice.toString())} ={" "}
+                {formatCurrency(item.lineTotal.toString())}
               </span>
             </div>
           ))}
           <div className="flex justify-between pt-2 font-bold">
             <span>الإجمالي</span>
-            <span>{formatNumber(invoice.total.toString())}</span>
+            <span>{formatCurrency(invoice.total.toString())}</span>
           </div>
         </CardContent>
       </Card>
@@ -86,19 +92,19 @@ export default async function InvoicePage({
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">الإجمالي</CardTitle>
           </CardHeader>
-          <CardContent>{formatNumber(invoice.total.toString())}</CardContent>
+          <CardContent>{formatCurrency(invoice.total.toString())}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">المدفوع</CardTitle>
           </CardHeader>
-          <CardContent>{formatNumber(paid.toString())}</CardContent>
+          <CardContent>{formatCurrency(paid.toString())}</CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">المتبقي</CardTitle>
           </CardHeader>
-          <CardContent className="font-bold">{formatNumber(remaining.toString())}</CardContent>
+          <CardContent className="font-bold">{formatCurrency(remaining.toString())}</CardContent>
         </Card>
       </div>
 
@@ -115,7 +121,7 @@ export default async function InvoicePage({
                 <li key={p.id} className="flex justify-between border-b pb-2 last:border-0">
                   <span>{PAYMENT_METHOD_LABELS[p.method] ?? p.method}</span>
                   <span>
-                    {formatNumber(p.amount.toString())} — {formatDate(p.paidAt)}
+                    {formatCurrency(p.amount.toString())} — {formatDate(p.paidAt)}
                   </span>
                 </li>
               ))}
@@ -123,6 +129,42 @@ export default async function InvoicePage({
           )}
           {canWrite && invoice.status !== "paid" && remaining > 0 && (
             <PaymentForm invoiceId={invoice.id} />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>إشعارات الدائن</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {invoice.creditNotes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">مفيش إشعارات دائن مسجلة</p>
+          ) : (
+            <ul className="flex flex-col gap-2 text-sm">
+              {invoice.creditNotes.map((cn) => (
+                <li key={cn.id} className="flex justify-between border-b pb-2 last:border-0">
+                  <Link
+                    href={`/accounting/credit-notes/${cn.id}`}
+                    className="text-primary hover:underline"
+                  >
+                    <span className="ltr-technical">{cn.creditNoteNumber}</span>
+                  </Link>
+                  <span>
+                    {formatCurrency(cn.total.toString())} — {formatDate(cn.issueDate)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {canWrite && (invoice.status === "issued" || invoice.status === "paid") && remaining > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-fit"
+              nativeButton={false}
+              render={<Link href={`/accounting/${invoice.id}/credit-notes/new`}>إصدار إشعار دائن</Link>}
+            />
           )}
         </CardContent>
       </Card>

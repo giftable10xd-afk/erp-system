@@ -3,7 +3,7 @@ import { requirePermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, formatCurrency } from "@/lib/format";
 import { INVOICE_STATUS_LABELS } from "@/lib/labels";
 import { PrintDocumentHeader } from "@/components/print-document-header";
 
@@ -70,11 +70,11 @@ export default async function InvoicePrintPage({
             <tr key={item.id} className="border-b">
               <td className="py-2">{item.description}</td>
               <td className="py-2 text-center">{formatNumber(item.quantity.toString())}</td>
-              <td className="py-2 text-center">{formatNumber(item.unitPrice.toString())}</td>
+              <td className="py-2 text-center">{formatCurrency(item.unitPrice.toString())}</td>
               <td className="py-2 text-center">
                 {formatNumber(item.taxRate.toString())}%
               </td>
-              <td className="py-2 text-center">{formatNumber(item.lineTotal.toString())}</td>
+              <td className="py-2 text-center">{formatCurrency(item.lineTotal.toString())}</td>
             </tr>
           ))}
         </tbody>
@@ -83,15 +83,15 @@ export default async function InvoicePrintPage({
       <div className="flex flex-col items-end gap-1 text-sm">
         <div className="flex w-56 justify-between">
           <span className="text-muted-foreground">الإجمالي</span>
-          <span className="font-medium">{formatNumber(invoice.total.toString())}</span>
+          <span className="font-medium">{formatCurrency(invoice.total.toString())}</span>
         </div>
         <div className="flex w-56 justify-between">
           <span className="text-muted-foreground">المدفوع</span>
-          <span className="font-medium">{formatNumber(paid.toString())}</span>
+          <span className="font-medium">{formatCurrency(paid.toString())}</span>
         </div>
         <div className="flex w-56 justify-between border-t pt-1 font-bold">
           <span>المتبقي</span>
-          <span>{formatNumber((Number(invoice.total) - paid).toString())}</span>
+          <span>{formatCurrency((Number(invoice.total) - paid).toString())}</span>
         </div>
       </div>
     </div>

@@ -17,11 +17,12 @@ import {
   EQUIPMENT_STATUS_LABELS,
   EQUIPMENT_TYPE_LABELS,
 } from "@/lib/labels";
-import { Package, Plus } from "lucide-react";
+import { Package, Pencil, Plus } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 
 export default async function EquipmentPage() {
-  await requirePermission(PERMISSIONS.INVENTORY_READ);
+  const session = await requirePermission(PERMISSIONS.INVENTORY_READ);
+  const canWrite = session.permissions.has(PERMISSIONS.INVENTORY_WRITE);
 
   const equipment = await prisma.equipment.findMany({
     orderBy: { createdAt: "desc" },
@@ -62,12 +63,13 @@ export default async function EquipmentPage() {
               <TableHead>النوع</TableHead>
               <TableHead>الماركة/الموديل</TableHead>
               <TableHead>الحالة</TableHead>
+              {canWrite && <TableHead>إجراء</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {equipment.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={canWrite ? 5 : 4} className="text-center text-muted-foreground">
                   مفيش معدات مسجلة لسه
                 </TableCell>
               </TableRow>
@@ -102,6 +104,21 @@ export default async function EquipmentPage() {
                     {EQUIPMENT_STATUS_LABELS[eq.status] ?? eq.status}
                   </Badge>
                 </TableCell>
+                {canWrite && (
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      nativeButton={false}
+                      render={
+                        <Link href={`/equipment/${eq.id}/edit`}>
+                          <Pencil className="size-3.5" />
+                          تعديل
+                        </Link>
+                      }
+                    />
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

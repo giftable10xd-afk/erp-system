@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatNumber } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import { PAYROLL_STATUS_LABELS, monthNameAr } from "@/lib/labels";
 import { generateMonthlyPayrollAction } from "@/lib/actions/hr-actions";
 
@@ -99,9 +99,9 @@ export default async function PayrollPage({
                     {r.employee.fullNameAr}
                   </Link>
                 </TableCell>
-                <TableCell>{formatNumber(r.baseSalary.toString())}</TableCell>
-                <TableCell>{formatNumber(r.deductionsTotal.toString())}</TableCell>
-                <TableCell>{formatNumber(r.netPay.toString())}</TableCell>
+                <TableCell>{formatCurrency(r.baseSalary.toString())}</TableCell>
+                <TableCell>{formatCurrency(r.deductionsTotal.toString())}</TableCell>
+                <TableCell>{formatCurrency(r.netPay.toString())}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{PAYROLL_STATUS_LABELS[r.status] ?? r.status}</Badge>
                 </TableCell>

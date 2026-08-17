@@ -30,6 +30,7 @@ model User {
   assignedTickets    SupportTicket[]     @relation("AssignedTickets")
   ticketComments     TicketComment[]
   payrollAdjustments PayrollAdjustment[]
+  expenses           Expense[]
 
   @@map("users")
 }
@@ -309,18 +310,20 @@ model PayrollAdjustment {
 // ─────────────────────────────────────────────────────────────
 
 model Customer {
-  id        String   @id @default(cuid())
-  nameAr    String
-  phone     String?
-  taxId     String?
-  type      String // individual | company
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  nameAr      String
+  phone       String?
+  taxId       String?
+  type        String // individual | company
+  isActive    Boolean  @default(true)
+  portalToken String   @unique @default(cuid())
+  createdAt   DateTime @default(now())
 
   invoices        Invoice[]
   quotes          Quote[]
   rentalContracts RentalContract[]
   supportTickets  SupportTicket[]
+  creditNotes     CreditNote[]
 
   @@map("customers")
 }
@@ -346,9 +349,41 @@ model Invoice {
   lineItems   InvoiceLineItem[]
   payments    Payment[]
   sourceQuote Quote?
+  creditNotes CreditNote[]
 
   @@index([customerId])
   @@map("invoices")
+}
+
+model CreditNote {
+  id                String                @id @default(cuid())
+  creditNoteNumber  String                @unique
+  invoiceId         String
+  invoice           Invoice               @relation(fields: [invoiceId], references: [id])
+  customerId        String
+  customer          Customer              @relation(fields: [customerId], references: [id])
+  issueDate         DateTime              @default(now())
+  reason            String?
+  total             Decimal               @default(0)
+
+  lineItems CreditNoteLineItem[]
+
+  @@index([invoiceId])
+  @@index([customerId])
+  @@map("credit_notes")
+}
+
+model CreditNoteLineItem {
+  id           String     @id @default(cuid())
+  creditNoteId String
+  creditNote   CreditNote @relation(fields: [creditNoteId], references: [id], onDelete: Cascade)
+  description  String
+  quantity     Decimal
+  unitPrice    Decimal
+  taxRate      Decimal    @default(0)
+  lineTotal    Decimal
+
+  @@map("credit_note_line_items")
 }
 
 model InvoiceLineItem {
@@ -482,6 +517,8 @@ model RentalContract {
   actualReturnDate   DateTime?
   status             String    @default("active") // active | completed | overdue | cancelled
   rateAmount         Decimal
+  isRecurring        Boolean   @default(false)
+  recurringDayOfMonth Int?
 
   invoices Invoice[]
   quotes   Quote[]
@@ -522,4 +559,22 @@ model Notification {
 
   @@index([recipientUserId, isRead])
   @@map("notifications")
+}
+
+// ─────────────────────────────────────────────────────────────
+// المصروفات
+// ─────────────────────────────────────────────────────────────
+
+model Expense {
+  id              String   @id @default(cuid())
+  category        String // fuel | parts | salaries | utilities | other
+  description     String
+  amount          Decimal
+  expenseDate     DateTime @default(now())
+  recordedByUserId String
+  recordedBy      User     @relation(fields: [recordedByUserId], references: [id])
+  createdAt       DateTime @default(now())
+
+  @@index([expenseDate])
+  @@map("expenses")
 }

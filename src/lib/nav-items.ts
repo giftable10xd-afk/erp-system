@@ -16,13 +16,13 @@ export type NavIconName =
   | "Bell"
   | "ShieldCheck"
   | "Settings"
-  | "Clapperboard";
+  | "Wallet";
 
 export type NavItem = {
   href: string;
   labelAr: string;
   icon: NavIconName;
-  /** null = متاح لأي مستخدم داخل بغض النظر عن الصلاحيات (زي الجولة التعريفية) */
+  /** null = متاح لأي مستخدم داخل بغض النظر عن الصلاحيات */
   permission: PermissionKey | null;
 };
 
@@ -97,15 +97,15 @@ export const NAV_ITEMS: NavItem[] = [
     permission: PERMISSIONS.USERS_MANAGE,
   },
   {
+    href: "/expenses",
+    labelAr: "المصروفات",
+    icon: "Wallet",
+    permission: PERMISSIONS.EXPENSES_READ,
+  },
+  {
     href: "/settings",
     labelAr: "إعدادات الشركة",
     icon: "Settings",
     permission: PERMISSIONS.SETTINGS_READ,
-  },
-  {
-    href: "/tour",
-    labelAr: "جولة تعريفية",
-    icon: "Clapperboard",
-    permission: null,
   },
 ];

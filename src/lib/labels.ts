@@ -179,6 +179,14 @@ export const TICKET_PRIORITY_LABELS: Record<string, string> = {
   urgent: "عاجلة",
 };
 
+export const EXPENSE_CATEGORY_LABELS: Record<string, string> = {
+  fuel: "وقود",
+  parts: "قطع غيار",
+  salaries: "مرتبات",
+  utilities: "مرافق",
+  other: "أخرى",
+};
+
 export const TICKET_PRIORITY_CLASSES: Record<string, string> = {
   low: "bg-status-retired-bg text-status-retired",
   normal: "bg-status-rented-bg text-status-rented",

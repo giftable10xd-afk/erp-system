@@ -10,7 +10,13 @@ import { Card, CardContent } from "@/components/ui/card";
 export function RentalContractEditForm({
   contract,
 }: {
-  contract: { id: string; expectedReturnDate: string; rateAmount: string };
+  contract: {
+    id: string;
+    expectedReturnDate: string;
+    rateAmount: string;
+    isRecurring: boolean;
+    recurringDayOfMonth: number | null;
+  };
 }) {
   const [state, action, pending] = useActionState(updateRentalContractAction, undefined);
 
@@ -43,6 +49,29 @@ export function RentalContractEditForm({
               className="ltr-technical"
               dir="ltr"
               required
+            />
+          </div>
+          <div className="flex items-center gap-2 border-t pt-4">
+            <input
+              id="isRecurring"
+              name="isRecurring"
+              type="checkbox"
+              defaultChecked={contract.isRecurring}
+              className="size-4"
+            />
+            <Label htmlFor="isRecurring">فوترة شهرية تلقائية</Label>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="recurringDayOfMonth">يوم الفوترة من كل شهر</Label>
+            <Input
+              id="recurringDayOfMonth"
+              name="recurringDayOfMonth"
+              type="number"
+              min="1"
+              max="28"
+              defaultValue={contract.recurringDayOfMonth ?? 1}
+              className="ltr-technical w-24"
+              dir="ltr"
             />
           </div>
           {state?.error && (

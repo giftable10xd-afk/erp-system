@@ -20,6 +20,12 @@ export function proxy(request: NextRequest) {
   const hasSessionCookie = request.cookies.has(SESSION_COOKIE_NAME);
   const { pathname } = request.nextUrl;
 
+  // بوابة العميل (/portal/...) عامة بالكامل — الحماية بتحصل بمطابقة
+  // portalToken جوه الصفحة نفسها مش عبر جلسة تسجيل دخول.
+  if (pathname.startsWith("/portal")) {
+    return NextResponse.next();
+  }
+
   if (!hasSessionCookie && !UNAUTH_ACCESSIBLE_PATHS.has(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }

@@ -25,6 +25,8 @@ export default async function EditRentalContractPage({
           id: contract.id,
           expectedReturnDate: contract.expectedReturnDate.toISOString().slice(0, 10),
           rateAmount: contract.rateAmount.toString(),
+          isRecurring: contract.isRecurring,
+          recurringDayOfMonth: contract.recurringDayOfMonth,
         }}
       />
     </div>

@@ -21,6 +21,8 @@ export const PERMISSIONS = {
   USERS_MANAGE: "users:manage",
   SETTINGS_READ: "settings:read",
   SETTINGS_WRITE: "settings:write",
+  EXPENSES_READ: "expenses:read",
+  EXPENSES_WRITE: "expenses:write",
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -57,6 +59,8 @@ export const ROLE_SEEDS: {
       PERMISSIONS.ACCOUNTING_WRITE,
       PERMISSIONS.QUOTE_READ,
       PERMISSIONS.QUOTE_WRITE,
+      PERMISSIONS.EXPENSES_READ,
+      PERMISSIONS.EXPENSES_WRITE,
     ],
   },
   {

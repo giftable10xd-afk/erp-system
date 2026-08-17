@@ -3,7 +3,7 @@ import { requirePermission } from "@/lib/auth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatDate, formatNumber, formatCurrency } from "@/lib/format";
 import { QUOTE_STATUS_LABELS } from "@/lib/labels";
 import { PrintDocumentHeader } from "@/components/print-document-header";
 
@@ -74,9 +74,9 @@ export default async function QuotePrintPage({
             <tr key={item.id} className="border-b">
               <td className="py-2">{item.description}</td>
               <td className="py-2 text-center">{formatNumber(item.quantity.toString())}</td>
-              <td className="py-2 text-center">{formatNumber(item.unitPrice.toString())}</td>
+              <td className="py-2 text-center">{formatCurrency(item.unitPrice.toString())}</td>
               <td className="py-2 text-center">{formatNumber(item.taxRate.toString())}%</td>
-              <td className="py-2 text-center">{formatNumber(item.lineTotal.toString())}</td>
+              <td className="py-2 text-center">{formatCurrency(item.lineTotal.toString())}</td>
             </tr>
           ))}
         </tbody>
@@ -85,7 +85,7 @@ export default async function QuotePrintPage({
       <div className="flex flex-col items-end gap-1 text-sm">
         <div className="flex w-56 justify-between border-t pt-1 font-bold">
           <span>الإجمالي</span>
-          <span>{formatNumber(quote.total.toString())}</span>
+          <span>{formatCurrency(quote.total.toString())}</span>
         </div>
       </div>
     </div>

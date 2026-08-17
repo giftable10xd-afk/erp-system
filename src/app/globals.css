@@ -4,33 +4,52 @@
 
 /*
  * @font-face خام (مش next/font/local) — عمدًا، next/font/local كان بيكسر
- * تشكيل الحروف مع خطوط Naskh المخصصة دي تحديدًا. بناءً على طلب المستخدم:
- * Thick Naskh Swash للعناوين، وKA Typical Naskh للنصوص الأساسية (Free for
- * personal use only — arfonts.net؛ مناسب طالما المشروع portfolio/demo،
- * محتاج ترخيص مختلف لو اتحول لمنتج تجاري حقيقي). JH Naskh Expanded Medium
- * (المحاولة السابقة للنص الأساسي) مش مستخدَم دلوقتي، الملف لسه موجود لو
- * رجعنا نحتاجه. word-spacing في @layer base تحت ده متسّاب على normal —
- * الخط الحالي مش محتاج تعويض زي Decotype القديم.
+ * تشكيل الحروف مع خطوط Naskh المخصصة اللي كانت مستخدمة قبل كده. بناءً على
+ * طلب المستخدم: عائلة Thmanyah Serif Text (خمس أوزان) للعناوين والنصوص
+ * الأساسية كلها (Free — arfonts.net؛ مش معدَّلة، متطابقة مع شرط المصمم).
+ * الخطوط القديمة (Thick Naskh Swash / KA Typical Naskh / Decotype / JH
+ * Naskh) لسه موجودة في public/fonts لو رجعنا نحتاجها لاحقًا.
  */
 @font-face {
-  font-family: "Thick Naskh Swash";
-  src: url("/fonts/thick-naskh-swash.ttf") format("truetype");
-  font-weight: 400 700;
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyah-serif-text-light.otf") format("opentype");
+  font-weight: 300;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "KA Typical Naskh";
-  src: url("/fonts/ka-typical-naskh.otf") format("opentype");
-  font-weight: 400 700;
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyah-serif-text-regular.otf") format("opentype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyah-serif-text-medium.otf") format("opentype");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyah-serif-text-bold.otf") format("opentype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyah-serif-text-black.otf") format("opentype");
+  font-weight: 900;
   font-display: swap;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "KA Typical Naskh", sans-serif;
-  --font-heading: "Thick Naskh Swash", sans-serif;
+  --font-sans: "Thmanyah Serif Text", serif;
+  --font-heading: "Thmanyah Serif Text", serif;
   --font-ltr: var(--font-ltr-technical);
   --font-ltr-display: var(--font-ltr-display-face);
   --color-status-active: var(--status-active);

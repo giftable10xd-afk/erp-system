@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatDate, formatNumber, formatCurrency } from "@/lib/format";
 import { QUOTE_STATUS_CLASSES, QUOTE_STATUS_LABELS } from "@/lib/labels";
 import { updateQuoteStatusAction, convertQuoteToInvoiceAction } from "@/lib/actions/quote-actions";
 import { FileText } from "lucide-react";
@@ -87,14 +87,14 @@ export default async function QuotePage({
             <div key={item.id} className="flex justify-between border-b pb-2 last:border-0">
               <span>{item.description}</span>
               <span className="ltr-technical">
-                {formatNumber(item.quantity.toString())} × {formatNumber(item.unitPrice.toString())} ={" "}
-                {formatNumber(item.lineTotal.toString())}
+                {formatNumber(item.quantity.toString())} × {formatCurrency(item.unitPrice.toString())} ={" "}
+                {formatCurrency(item.lineTotal.toString())}
               </span>
             </div>
           ))}
           <div className="flex justify-between pt-2 font-bold">
             <span>الإجمالي</span>
-            <span>{formatNumber(quote.total.toString())}</span>
+            <span>{formatCurrency(quote.total.toString())}</span>
           </div>
         </CardContent>
       </Card>

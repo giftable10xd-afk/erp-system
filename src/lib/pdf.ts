@@ -1,13 +1,37 @@
 import "server-only";
-import { chromium, type Browser } from "playwright";
+import { chromium, type Browser, type LaunchOptions } from "playwright";
 
 // نسخة واحدة من المتصفح تتشارك بين كل طلبات توليد الـ PDF بدل ما نفتح
 // متصفح جديد كل مرة (تكلفة إطلاق Chromium عالية).
 let browserPromise: Promise<Browser> | null = null;
 
+// على Vercel مفيش Chromium متثبت في بيئة التشغيل (serverless)، فبنحمّل نسخة
+// @sparticuz/chromium المبنية لـLambda ونمرّر مسارها. على أي سيرفر عادي
+// (Render أو التطوير المحلي) بنسيب playwright يستخدم المتصفح المتثبت عنده
+// زي ما هو — نفس السلوك اللي شغال دلوقتي بالظبط.
+async function launchOptions(): Promise<LaunchOptions> {
+  if (!process.env.VERCEL) {
+    return { headless: true };
+  }
+
+  const { default: sparticuz } = await import("@sparticuz/chromium");
+  return {
+    args: sparticuz.args,
+    executablePath: await sparticuz.executablePath(),
+    headless: true,
+  };
+}
+
 function getBrowser() {
   if (!browserPromise) {
-    browserPromise = chromium.launch({ headless: true });
+    // لو الإطلاق فشل، امسح الـpromise عشان الطلب اللي بعده يحاول من جديد
+    // بدل ما يفضل متعلق بنفس الفشل المخزَّن.
+    browserPromise = launchOptions()
+      .then((options) => chromium.launch(options))
+      .catch((err) => {
+        browserPromise = null;
+        throw err;
+      });
   }
   return browserPromise;
 }

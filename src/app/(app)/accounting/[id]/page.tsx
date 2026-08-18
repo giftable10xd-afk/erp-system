@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button";
 import { formatDate, formatNumber, formatCurrency } from "@/lib/format";
 import { INVOICE_STATUS_CLASSES, INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS } from "@/lib/labels";
 import { issueInvoiceAction, cancelInvoiceAction } from "@/lib/actions/invoice-actions";
+import { emailInvoiceAction } from "@/lib/actions/email-actions";
 import { FileText } from "lucide-react";
 import { PaymentForm } from "./payment-form";
 import { ConfirmSubmitButton } from "@/components/confirm-submit-button";
+import { EmailSendButton } from "@/components/email-send-button";
 
 export default async function InvoicePage({
   params,
@@ -65,6 +67,15 @@ export default async function InvoicePage({
           />
         </div>
       </div>
+
+      {canWrite && (
+        <EmailSendButton
+          action={emailInvoiceAction}
+          hiddenFieldName="invoiceId"
+          hiddenFieldValue={invoice.id}
+          customerHasEmail={Boolean(invoice.customer.email)}
+        />
+      )}
 
       <Card>
         <CardHeader>

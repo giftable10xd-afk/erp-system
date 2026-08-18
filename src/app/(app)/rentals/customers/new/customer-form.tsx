@@ -41,6 +41,10 @@ export function CustomerForm() {
               <Input id="taxId" name="taxId" className="ltr-technical" dir="ltr" />
             </div>
           </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email">البريد الإلكتروني (اختياري)</Label>
+            <Input id="email" name="email" type="email" className="ltr-technical" dir="ltr" />
+          </div>
           {state?.error && (
             <p className="text-sm text-destructive" role="alert">
               {state.error}

@@ -9,12 +9,13 @@ import { PERMISSIONS } from "@/lib/permissions";
 
 export type ActionState = { error?: string; success?: boolean } | undefined;
 
+// logoUrl مش موجود هنا عمدًا — بيتحدث لوحده من uploadLogoAction (رفع
+// ملف حقيقي لـ R2)، مش من الفورم ده.
 const settingsSchema = z.object({
   companyNameAr: z.string().min(1, "اسم الشركة مطلوب"),
   taxId: z.string().optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
-  logoUrl: z.string().optional(),
   defaultTaxRate: z.coerce.number().min(0).max(100),
 });
 
@@ -29,7 +30,6 @@ export async function upsertSettingsAction(
     taxId: formData.get("taxId") || undefined,
     address: formData.get("address") || undefined,
     phone: formData.get("phone") || undefined,
-    logoUrl: formData.get("logoUrl") || undefined,
     defaultTaxRate: formData.get("defaultTaxRate") || "0",
   });
 

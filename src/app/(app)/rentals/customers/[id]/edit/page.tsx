@@ -25,6 +25,7 @@ export default async function EditCustomerPage({
           id: customer.id,
           nameAr: customer.nameAr,
           phone: customer.phone ?? "",
+          email: customer.email ?? "",
           taxId: customer.taxId ?? "",
           type: customer.type,
         }}

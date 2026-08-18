@@ -2,10 +2,37 @@
 
 import { useActionState } from "react";
 import { upsertSettingsAction } from "@/lib/actions/settings-actions";
+import { uploadLogoAction } from "@/lib/actions/upload-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+
+function LogoUploadForm({ currentLogoUrl }: { currentLogoUrl: string | null }) {
+  const [state, action, pending] = useActionState(uploadLogoAction, undefined);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor="logoFile">شعار الشركة</Label>
+      {currentLogoUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={currentLogoUrl} alt="الشعار الحالي" className="h-12 w-auto object-contain" />
+      )}
+      <form action={action} className="flex items-center gap-2">
+        <Input id="logoFile" name="logoFile" type="file" accept="image/*" className="max-w-xs" />
+        <Button type="submit" variant="outline" size="sm" disabled={pending}>
+          {pending ? "جارٍ الرفع..." : "رفع الشعار"}
+        </Button>
+      </form>
+      {state?.error && (
+        <p className="text-sm text-destructive" role="alert">
+          {state.error}
+        </p>
+      )}
+      {state?.success && <p className="text-sm text-status-active">تم رفع الشعار</p>}
+    </div>
+  );
+}
 
 export function SettingsForm({
   settings,
@@ -59,17 +86,6 @@ export function SettingsForm({
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="logoUrl">رابط الشعار (اختياري)</Label>
-            <Input
-              id="logoUrl"
-              name="logoUrl"
-              defaultValue={settings.logoUrl ?? ""}
-              className="ltr-technical"
-              dir="ltr"
-              placeholder="https://..."
-            />
-          </div>
-          <div className="flex flex-col gap-2">
             <Label htmlFor="defaultTaxRate">نسبة الضريبة الافتراضية %</Label>
             <Input
               id="defaultTaxRate"
@@ -94,6 +110,10 @@ export function SettingsForm({
             {pending ? "جارٍ الحفظ..." : "حفظ الإعدادات"}
           </Button>
         </form>
+
+        <div className="mt-6 border-t pt-6">
+          <LogoUploadForm currentLogoUrl={settings.logoUrl} />
+        </div>
       </CardContent>
     </Card>
   );

@@ -13,6 +13,7 @@ export type ActionState = { error?: string } | undefined;
 const customerSchema = z.object({
   nameAr: z.string().min(1, "اسم العميل مطلوب"),
   phone: z.string().optional(),
+  email: z.string().email("بريد إلكتروني غير صحيح").optional().or(z.literal("")),
   taxId: z.string().optional(),
   type: z.enum(["individual", "company"]),
 });
@@ -26,6 +27,7 @@ export async function createCustomerAction(
   const parsed = customerSchema.safeParse({
     nameAr: formData.get("nameAr"),
     phone: formData.get("phone") || undefined,
+    email: formData.get("email") || undefined,
     taxId: formData.get("taxId") || undefined,
     type: formData.get("type"),
   });
@@ -65,6 +67,7 @@ export async function updateCustomerAction(
     customerId: formData.get("customerId"),
     nameAr: formData.get("nameAr"),
     phone: formData.get("phone") || undefined,
+    email: formData.get("email") || undefined,
     taxId: formData.get("taxId") || undefined,
     type: formData.get("type"),
   });

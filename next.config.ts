@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   /* config options here */
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  // لسه مفيش Sentry auth token — رفع الـsource maps هيتفعّل بعدين لو احتجناه.
+  sourcemaps: { disable: true },
+});

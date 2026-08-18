@@ -10,7 +10,14 @@ import { Card, CardContent } from "@/components/ui/card";
 export function CustomerEditForm({
   customer,
 }: {
-  customer: { id: string; nameAr: string; phone: string; taxId: string; type: string };
+  customer: {
+    id: string;
+    nameAr: string;
+    phone: string;
+    email: string;
+    taxId: string;
+    type: string;
+  };
 }) {
   const [state, action, pending] = useActionState(updateCustomerAction, undefined);
 
@@ -57,6 +64,17 @@ export function CustomerEditForm({
                 dir="ltr"
               />
             </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email">البريد الإلكتروني (اختياري)</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              defaultValue={customer.email}
+              className="ltr-technical"
+              dir="ltr"
+            />
           </div>
           {state?.error && (
             <p className="text-sm text-destructive" role="alert">

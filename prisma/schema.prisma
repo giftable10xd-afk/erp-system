@@ -313,6 +313,7 @@ model Customer {
   id          String   @id @default(cuid())
   nameAr      String
   phone       String?
+  email       String?
   taxId       String?
   type        String // individual | company
   isActive    Boolean  @default(true)

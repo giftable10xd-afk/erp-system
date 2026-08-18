@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { formatDate, formatNumber, formatCurrency } from "@/lib/format";
 import { QUOTE_STATUS_CLASSES, QUOTE_STATUS_LABELS } from "@/lib/labels";
 import { updateQuoteStatusAction, convertQuoteToInvoiceAction } from "@/lib/actions/quote-actions";
+import { emailQuoteAction } from "@/lib/actions/email-actions";
 import { FileText } from "lucide-react";
+import { EmailSendButton } from "@/components/email-send-button";
 
 const NEXT_STATUS_LABELS: Record<string, string> = {
   sent: "إرسال العرض",
@@ -77,6 +79,15 @@ export default async function QuotePage({
           />
         </div>
       </div>
+
+      {canWrite && (
+        <EmailSendButton
+          action={emailQuoteAction}
+          hiddenFieldName="quoteId"
+          hiddenFieldValue={quote.id}
+          customerHasEmail={Boolean(quote.customer.email)}
+        />
+      )}
 
       <Card>
         <CardHeader>

@@ -48,6 +48,13 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
           <Link
             key={item.href}
             href={item.href}
+            // كل عناصر السايدبار ظاهرة في نفس الوقت، والـprefetch الافتراضي
+            // بيطلب بيانات RSC لكل رابط فيهم مرة واحدة أول ما الصفحة تفتح —
+            // يعني ١٢ رندر كامل على السيرفر (كل واحد بياخد اتصال قاعدة بيانات)
+            // بدل واحد. ده كان بيرجّع 503 على /maintenance و/accounting.
+            // prefetch={false} بيوقف ده، وNext لسه بيعمل prefetch عند hover،
+            // فالتنقل بيفضل سريع من غير الضغط الابتدائي.
+            prefetch={false}
             className={`relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
               isActive
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"

@@ -7,40 +7,42 @@
  * تشكيل الحروف مع خطوط Naskh المخصصة اللي كانت مستخدمة قبل كده. بناءً على
  * طلب المستخدم: عائلة Thmanyah Serif Text (خمس أوزان) للعناوين والنصوص
  * الأساسية كلها (Free — arfonts.net؛ مش معدَّلة، متطابقة مع شرط المصمم).
- * الخطوط القديمة (Thick Naskh Swash / KA Typical Naskh / Decotype / JH
- * Naskh) لسه موجودة في public/fonts لو رجعنا نحتاجها لاحقًا.
+ *
+ * الصيغة woff2 مش otf: نفس بيانات الحروف بالظبط، بس مضغوطة بـBrotli —
+ * الحزمة نزلت من ‎1.19MB‎ لـ‎386KB‎ (‑68%) من غير أي فرق في الشكل. التحويل
+ * اتعمل بـscripts/otf-to-woff2.mjs.
  */
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyah-serif-text-light.otf") format("opentype");
+  src: url("/fonts/thmanyah-serif-text-light.woff2") format("woff2");
   font-weight: 300;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyah-serif-text-regular.otf") format("opentype");
+  src: url("/fonts/thmanyah-serif-text-regular.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyah-serif-text-medium.otf") format("opentype");
+  src: url("/fonts/thmanyah-serif-text-medium.woff2") format("woff2");
   font-weight: 500;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyah-serif-text-bold.otf") format("opentype");
+  src: url("/fonts/thmanyah-serif-text-bold.woff2") format("woff2");
   font-weight: 700;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyah-serif-text-black.otf") format("opentype");
+  src: url("/fonts/thmanyah-serif-text-black.woff2") format("woff2");
   font-weight: 900;
   font-display: swap;
 }

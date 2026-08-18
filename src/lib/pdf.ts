@@ -1,5 +1,9 @@
 import "server-only";
-import { chromium, type Browser, type LaunchOptions } from "playwright";
+// playwright-core مش playwright: نفس الـAPI بالظبط، بس من غير سكربت تنزيل
+// المتصفحات (~400MB) اللي بيتنفّذ مع التثبيت. على Vercel المتصفح بييجي من
+// @sparticuz/chromium، وعلى السيرفرات العادية بييجي من `playwright install`
+// اللي بيتنفّذ وقت البناء — فالحزمة الكاملة مالهاش لزوم وقت التشغيل.
+import { chromium, type Browser, type LaunchOptions } from "playwright-core";
 
 // نسخة واحدة من المتصفح تتشارك بين كل طلبات توليد الـ PDF بدل ما نفتح
 // متصفح جديد كل مرة (تكلفة إطلاق Chromium عالية).

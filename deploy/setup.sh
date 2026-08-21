@@ -3,20 +3,37 @@
 # نفسها لو خلصت قبل كده، فلو وقف في النص تقدر تعيد تشغيله على طول.
 #
 # تجهيز سيرفر Oracle Cloud (Ubuntu 22.04+, ARM/aarch64 أو x86) لتشغيل
-# نظام الـERP. شغّله على السيرفر نفسه بصلاحية sudo:
+# نظام الـERP. شغّله على السيرفر نفسه بمستخدم عادي عنده sudo:
 #
 #   git clone https://github.com/giftable10xd-afk/erp-system.git
 #   cd erp-system
+#   cp deploy/env.example .env && nano .env
 #   bash deploy/setup.sh
 #
 set -euo pipefail
 
+# لو حد شغّله بـ`sudo bash deploy/setup.sh` هيتركّب كله بمستخدم root وبعدين
+# الخدمة متلاقيش المتصفح. نمنع ده من الأول بدل ما نكتشفه بعد النشر.
+if [ "$(id -u)" -eq 0 ]; then
+  echo "!! متشغّلش السكربت بـsudo. شغّله بمستخدمك العادي — هو بينده sudo لوحده."
+  exit 1
+fi
+
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_USER="${SUDO_USER:-$USER}"
+APP_USER="$USER"
 NODE_MAJOR=22
 
-echo "==> تثبيت النظام لمستخدم: $APP_USER"
+export DEBIAN_FRONTEND=noninteractive
+
+echo "==> المستخدم: $APP_USER"
 echo "==> مجلد التطبيق: $APP_DIR"
+
+if [ ! -f "$APP_DIR/.env" ]; then
+  echo "!! مفيش ملف .env — انسخ deploy/env.example لـ.env واملاه الأول."
+  exit 1
+fi
+
+sudo apt-get update -y
 
 # ── Node.js ──────────────────────────────────────────────────────────
 if ! command -v node >/dev/null 2>&1 || [ "$(node -v | cut -d. -f1 | tr -d 'v')" -lt "$NODE_MAJOR" ]; then
@@ -24,7 +41,7 @@ if ! command -v node >/dev/null 2>&1 || [ "$(node -v | cut -d. -f1 | tr -d 'v')"
   curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | sudo -E bash -
   sudo apt-get install -y nodejs
 else
-  echo "==> Node موجود بالفعل: $(node -v)"
+  echo "==> Node موجود: $(node -v)"
 fi
 
 # ── اعتماديات التطبيق ────────────────────────────────────────────────
@@ -33,17 +50,21 @@ cd "$APP_DIR"
 npm ci
 
 # ── متصفح Playwright ─────────────────────────────────────────────────
-# هنا إحنا root على السيرفر، فـ--with-deps بيشتغل عادي وبيجيب مكتبات النظام
-# اللي Chromium محتاجها — وده اللي كان فاشل على Render.
-echo "==> تثبيت Chromium ومكتبات النظام"
-sudo npx playwright install --with-deps chromium
+# مقسومة عمدًا لخطوتين: مكتبات النظام محتاجة root، لكن المتصفح نفسه لازم
+# يتنزّل بمستخدم التطبيق. لو نزّلناه بـsudo هيروح في /root/.cache والخدمة
+# (اللي بتشتغل بمستخدم عادي) مش هتلاقيه — وده بالظبط اللي كسر الـPDF قبل كده.
+echo "==> تثبيت مكتبات النظام لـChromium"
+sudo -E npx --yes playwright install-deps chromium
+
+echo "==> تنزيل Chromium لمستخدم $APP_USER"
+npx --yes playwright install chromium
+
+# ── قاعدة البيانات ───────────────────────────────────────────────────
+# migrate deploy بيطبّق الناقص بس ومش بيمسح بيانات — آمن يتعاد تشغيله.
+echo "==> تطبيق أي migrations ناقصة"
+npx prisma migrate deploy
 
 # ── البناء ───────────────────────────────────────────────────────────
-if [ ! -f "$APP_DIR/.env" ]; then
-  echo "!! مفيش ملف .env — انسخ deploy/env.example لـ.env واملاه قبل ما تكمل."
-  exit 1
-fi
-
 echo "==> بناء التطبيق"
 npm run build
 
@@ -76,16 +97,29 @@ sudo systemctl enable erp-system
 sudo systemctl restart erp-system
 
 # ── جدار الحماية ─────────────────────────────────────────────────────
-# Oracle بيسيب iptables مقفول افتراضيًا على Ubuntu، فلازم نفتح 80/443 هنا
-# *وكمان* في Security List بتاعة الشبكة من لوحة تحكم Oracle نفسها.
+# صور Ubuntu على Oracle بتيجي بقاعدة REJECT في آخر INPUT، فبندخل قواعدنا
+# بـ-I (في الأول) مش -A (في الآخر) وإلا الـREJECT هيسبقها.
 echo "==> فتح المنافذ 80 و443"
-sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
-sudo netfilter-persistent save 2>/dev/null || sudo apt-get install -y iptables-persistent
+for port in 80 443; do
+  sudo iptables -C INPUT -p tcp --dport "$port" -j ACCEPT 2>/dev/null \
+    || sudo iptables -I INPUT -p tcp --dport "$port" -j ACCEPT
+done
+
+# iptables-persistent بيسأل سؤالين وقت التثبيت، وdebconf دي بترد عليهم
+# مقدمًا عشان السكربت ميقفش مستني إجابة.
+if ! dpkg -s iptables-persistent >/dev/null 2>&1; then
+  echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
+  echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
+  sudo apt-get install -y iptables-persistent
+fi
+sudo netfilter-persistent save
 
 echo
 echo "==> تم. التطبيق شغال على المنفذ 3000."
-echo "    الحالة:  sudo systemctl status erp-system"
-echo "    السجلات: sudo journalctl -u erp-system -f"
+sudo systemctl --no-pager --lines=0 status erp-system || true
 echo
-echo "    الخطوة الجاية: bash deploy/setup-https.sh <your-domain-or-ip>"
+echo "    السجلات: sudo journalctl -u erp-system -f"
+echo "    الخطوة الجاية: bash deploy/setup-https.sh <domain-or-ip>"
+echo
+echo "    فاكر: لازم كمان تفتح 80/443 من لوحة Oracle نفسها"
+echo "    (Networking > VCN > Security Lists > Ingress Rules)."

@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# نسخ قاعدة البيانات الاحتياطية — بيانات حقيقية، متترفعش على git
+/backups
